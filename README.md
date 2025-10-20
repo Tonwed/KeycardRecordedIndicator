@@ -1,4 +1,5 @@
-# 已录入钥匙标识 Mod
+
+# Better Key Indicator
 
 ## 功能介绍
 
@@ -82,15 +83,9 @@ MIT License
 - [Duckov Modding 示例](https://github.com/xvrsl/duckov_modding)
 - [ItemLevelAndSearchSoundMod](https://github.com/dzj0821/ItemLevelAndSearchSoundMod)
 
-## 联系方式
-
-如有问题或建议，请通过以下方式联系：
-
-- GitHub Issues: (链接待补充)
-- Steam 创意工坊评论: (链接待补充)
-
 ---
 本项目全程采用Claude Code进行开发
+
 **祝你游戏愉快！** 🎮
 
 
