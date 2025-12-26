@@ -81,6 +81,11 @@ namespace KeycardRecordedIndicator
         public const string KEY_TAG = "Key";
 
         /// <summary>
+        /// 蓝图标签
+        /// </summary>
+        public const string BLUEPRINT_TAG ="Formula_Blueprint";
+
+        /// <summary>
         /// 标识 GameObject 的名称
         /// </summary>
         public const string INDICATOR_OBJECT_NAME = "RecordedIndicator";
