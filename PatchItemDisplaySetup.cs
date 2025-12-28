@@ -51,25 +51,38 @@ namespace KeycardRecordedIndicator
 
                 // 检查是否为钥匙
                 bool isKey = IsKeyItem(target);
+                // 检查是否为蓝图
+                bool isBlueprint = IsBlueprintItem(target);
 
-                if (!isKey)
+                if (!isKey&&!isBlueprint)
                 {
-                    // 不是钥匙，移除标识
+                    // 不是钥匙且不是蓝图，移除标识
                     RecordedIndicatorUI.RemoveIndicator(__instance);
                     return;
                 }
 
                 // 检查钥匙是否已录入
-                bool isRecorded = IsKeyRecorded(target.TypeID);
+                bool isKeyRecorded = IsKeyRecorded(target.TypeID);
+                // 检查蓝图是否已录入
+                bool isBlueprintRecorded = IsBlueprintRecorded(target);
 
-                if (isRecorded)
+                if (isKey&&isKeyRecorded)
                 {
-                    // 已录入，添加标识
+                    // 钥匙已录入，添加标识
                     RecordedIndicatorUI.AddIndicator(__instance);
 
                     if (Constants.DEBUG_MODE)
                     {
                         Debug.Log($"[{Constants.MOD_NAME}] Key recorded: {target.name} (TypeID: {target.TypeID})");
+                    }
+                }
+                else if (isBlueprint&&isBlueprintRecorded) {
+                    // 蓝图已录入，添加标识
+                    RecordedIndicatorUI.AddIndicator(__instance);
+
+                    if (Constants.DEBUG_MODE)
+                    {
+                        Debug.Log($"[{Constants.MOD_NAME}] Blueprint recorded: {target.name} (TypeID: {target.TypeID})");
                     }
                 }
                 else
@@ -123,8 +136,13 @@ namespace KeycardRecordedIndicator
                 // 检查物品是否不再需要检查（搜索完成）
                 if (!item.NeedInspection)
                 {
-                    // 搜索完成，检查是否为已录入的钥匙
-                    if (IsKeyItem(item) && IsKeyRecorded(item.TypeID))
+                    // 搜索完成，检查是否为已录入的钥匙或蓝图
+                    bool isKey = IsKeyItem(item);
+                    bool isBlueprint = IsBlueprintItem(item);
+                    bool isKeyRecorded = IsKeyRecorded(item.TypeID);
+                    bool isBlueprintRecorded = IsBlueprintRecorded(item);
+
+                    if ((isKey && isKeyRecorded) || (isBlueprint && isBlueprintRecorded))
                     {
                         // 找到对应的 ItemDisplay 并添加标识
                         // 这里我们需要通过 ItemDisplay 的 Target 属性来找到对应的 ItemDisplay
@@ -185,6 +203,51 @@ namespace KeycardRecordedIndicator
                 return false;
             }
         }
+
+        /// <summary>
+        /// 检查物品是否为蓝图
+        /// </summary>
+        /// <param name="item">物品实例</param>
+        /// <returns>是否为蓝图</returns>
+        private static bool IsBlueprintItem(Item item)
+        {
+            if (item == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                // 使用 TagCollection.Contains(string) 方法检查是否有 "Formula_Blueprint" 标签
+                return item.Tags != null && item.Tags.Contains(Constants.BLUEPRINT_TAG);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[{Constants.MOD_NAME}] Error checking if item is blueprint: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 检查蓝图是否已被录入
+        /// </summary>
+        /// <param name="item">物品实例</param>
+        /// <returns>是否已录入</returns>
+        private static bool IsBlueprintRecorded(Item item)
+        {
+            try
+            {
+                // 使用 CraftingManager 检查蓝图是否已被录入
+                var fid = FormulasRegisterView.GetFormulaID(item);
+                var ids = CraftingManager.UnlockedFormulaIDs;
+                return ids.Contains(fid);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[{Constants.MOD_NAME}] Error checking if blueprint is recorded: {ex.Message}");
+                return false;
+            }
+        }
     }
 
     /// <summary>
@@ -225,14 +288,22 @@ namespace KeycardRecordedIndicator
                 }
 
                 // 检查是否为钥匙
-                if (!PatchItemDisplaySetup.IsKeyItemPublic(target))
+                bool isKey = PatchItemDisplaySetup.IsKeyItemPublic(target);
+                // 检查是否为蓝图
+                bool isBlueprint = PatchItemDisplaySetup.IsBlueprintItemPublic(target);
+
+
+                if (!isKey && !isBlueprint)
                 {
                     RecordedIndicatorUI.RemoveIndicator(__instance);
                     return;
                 }
 
-                // 检查钥匙是否已录入
-                if (PatchItemDisplaySetup.IsKeyRecordedPublic(target.TypeID))
+                // 检查钥匙或蓝图是否已录入
+                bool isKeyRecorded = PatchItemDisplaySetup.IsKeyRecordedPublic(target.TypeID);
+                bool isBlueprintRecorded = PatchItemDisplaySetup.IsBlueprintRecordedPublic(target);
+
+                if (isKeyRecorded|| isBlueprintRecorded)
                 {
                     RecordedIndicatorUI.AddIndicator(__instance);
                 }
@@ -288,6 +359,22 @@ namespace KeycardRecordedIndicator
                 Debug.LogWarning($"[{Constants.MOD_NAME}] Error checking if key is recorded: {ex.Message}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// 公共版本的 IsBlueprintItem 方法
+        /// </summary>
+        public static bool IsBlueprintItemPublic(Item item)
+        {
+            return IsBlueprintItem(item);
+        }
+
+        /// <summary>
+        /// 公共版本的 IsBlueprintRecorded 方法
+        /// </summary>
+        public static bool IsBlueprintRecordedPublic(Item item)
+        {
+            return IsBlueprintRecorded(item);
         }
     }
 }
